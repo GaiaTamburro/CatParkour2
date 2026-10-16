@@ -16,7 +16,7 @@ public class Cat {
 
     public float speed = 4.8f;
     public float gravity = 0.48f;
-    public float jumpStrength = -11.8f;
+    public float jumpStrength = -13f;
 
     private GamePanel gp;
     private KeyHandler keyH;
@@ -27,12 +27,14 @@ public class Cat {
     public Cat(GamePanel gp, KeyHandler keyH) {
         this.gp = gp;
         this.keyH = keyH;
-        this.width = gp.tileSize;
-        this.height = gp.tileSize;
+        //this.width = gp.tileSize;
+        //this.height = gp.tileSize;
+        this.height = 80;
+        this.width = 104;
 
         // 🔥 UNICA MODIFICA: carica il nuovo sprite
         try {
-            catImage = ImageIO.read(getClass().getResource("/cat_walk.png"));
+            catImage = ImageIO.read(getClass().getResource("/cat_walk2.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -83,7 +85,7 @@ public class Cat {
             Rectangle pb = p.getBounds();
 
             // Atterraggio
-            if (velY > 0 && y + height <= pb.y + 20 && futureBoundsY.intersects(pb)) {
+            if (velY > 0 && y + height <= pb.y + 8 && futureBoundsY.intersects(pb)) {
                 nextY = pb.y - height;
                 velY = 0;
                 isGrounded = true;
@@ -95,9 +97,13 @@ public class Cat {
                 velY = 0;
             }
         }
-
+        if (nextY < 0) {
+            nextY = 0;
+            velY = 0;
+        }
         x = nextX;
         y = nextY;
+
     }
 
     public void draw(Graphics2D g2, int cameraX) {

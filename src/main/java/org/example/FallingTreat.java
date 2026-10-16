@@ -8,7 +8,7 @@ import java.io.IOException;
 public class FallingTreat {
 
     public float x, y;
-    public int size = 32; // più grande per immagine
+    public int size = 48; // più grande per immagine
     public float velY = 3.5f;
 
     private static BufferedImage treatImage;
@@ -25,6 +25,7 @@ public class FallingTreat {
                 e.printStackTrace();
             }
         }
+
     }
 
     public Rectangle getBounds() {
