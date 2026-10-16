@@ -1,4 +1,5 @@
 package org.example;
+
 import javax.swing.JPanel;
 import java.awt.*;
 import java.util.ArrayList;
@@ -30,12 +31,16 @@ public class GamePanel extends JPanel implements Runnable {
     public boolean gameWon = false;
     public boolean gameOver = false;
 
+    // CROCCANTINI
+    public ArrayList<FallingTreat> treats = new ArrayList<>();
+    public int treatsCollected = 0;
+    public int treatMessageTimer = 0;
+
     public GamePanel() {
         this.setPreferredSize(new Dimension(screenWidth, screenHeight));
         this.setBackground(new Color(25, 28, 36));
         this.setDoubleBuffered(true);
 
-        // Inizializza KeyHandler passando il riferimento a questo GamePanel
         keyH = new KeyHandler(this);
         this.addKeyListener(keyH);
         this.setFocusable(true);
@@ -49,10 +54,8 @@ public class GamePanel extends JPanel implements Runnable {
         Color parquet1 = new Color(181, 101, 29);
         Color parquet2 = new Color(117, 59, 12);
 
-        // Pavimento mortale
         floorHazard = new Rectangle(0, screenHeight - 20, worldWidth, 20);
 
-        // Percorso
         platforms.add(new Platform(0, screenHeight - 100, 300, 80, parquet1, parquet2));
         platforms.add(new Platform(380, 420, 150, 20, mogano1, mogano2));
         platforms.add(new Platform(600, 350, 140, 20, mogano1, mogano2));
@@ -77,7 +80,6 @@ public class GamePanel extends JPanel implements Runnable {
         cat.y = screenHeight - 160;
     }
 
-    // Metodo per riavviare la partita
     public void restartGame() {
         cat.x = 50;
         cat.y = screenHeight - 160;
@@ -85,6 +87,10 @@ public class GamePanel extends JPanel implements Runnable {
         cameraX = 0;
         gameOver = false;
         gameWon = false;
+
+        treats.clear();
+        treatsCollected = 0;
+        treatMessageTimer = 0;
     }
 
     public void startGameThread() {
@@ -117,20 +123,46 @@ public class GamePanel extends JPanel implements Runnable {
 
         cat.update(platforms);
 
-        // Telecamera
         cameraX = (int) cat.x - (screenWidth / 2) + (cat.width / 2);
         if (cameraX < 0) cameraX = 0;
         if (cameraX > worldWidth - screenWidth) cameraX = worldWidth - screenWidth;
 
-        // Morte per caduta
         if (cat.getBounds().intersects(floorHazard) || cat.y + cat.height >= screenHeight - 20) {
             gameOver = true;
         }
 
-        // Vittoria
         if (cat.getBounds().intersects(bowlGoal)) {
             gameWon = true;
         }
+
+        // GENERA CROCCANTINI CASUALI
+        if (Math.random() < 0.02) {
+            float spawnX = cameraX + (float)(Math.random() * screenWidth);
+            treats.add(new FallingTreat(spawnX, -40));
+        }
+
+        // AGGIORNA CROCCANTINI
+        for (int i = 0; i < treats.size(); i++) {
+            FallingTreat t = treats.get(i);
+            t.update();
+
+            if (t.y > screenHeight + 100) {
+                treats.remove(i);
+                i--;
+                continue;
+            }
+
+            // RACCOLTA CROCCANTINO
+            if (cat.getBounds().intersects(t.getBounds())) {
+                treatsCollected++;
+                treatMessageTimer = 60; // 1 secondo
+                treats.remove(i);
+                i--;
+                continue;
+            }
+        }
+
+        if (treatMessageTimer > 0) treatMessageTimer--;
     }
 
     @Override
@@ -138,7 +170,6 @@ public class GamePanel extends JPanel implements Runnable {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
 
-        // Disegna Pavimento
         g2.setColor(new Color(220, 40, 30));
         g2.fillRect(floorHazard.x - cameraX, floorHazard.y, floorHazard.width, floorHazard.height);
 
@@ -147,28 +178,34 @@ public class GamePanel extends JPanel implements Runnable {
             g2.fillRect(i - cameraX, floorHazard.y, 20, 5);
         }
 
-        // Piattaforme
         for (Platform p : platforms) {
             p.draw(g2, cameraX);
         }
 
-        // Traguardo
+        for (FallingTreat t : treats) {
+            t.draw(g2, cameraX);
+        }
+
         int bowlScreenX = bowlGoal.x - cameraX;
         g2.setColor(new Color(255, 215, 0));
         g2.fillOval(bowlScreenX, bowlGoal.y + 15, bowlGoal.width, 20);
         g2.setColor(Color.YELLOW);
         g2.fillOval(bowlScreenX + 5, bowlGoal.y + 10, bowlGoal.width - 10, 12);
 
-        // Gatto
         cat.draw(g2, cameraX);
 
-        // HUD
         g2.setColor(Color.WHITE);
         g2.setFont(new Font("Arial", Font.BOLD, 14));
         g2.drawString("CORRI IN AVANTI VERSO DESTRA! ->", 20, 30);
         g2.drawString("Avanzamento: " + (int)(cat.x / 28.5) + "%", 20, 50);
+        g2.drawString("Croccantini: " + treatsCollected, 20, 70);
 
-        // Schermate finali con indicazione per riavviare
+        if (treatMessageTimer > 0) {
+            g2.setColor(new Color(255, 200, 50));
+            g2.setFont(new Font("Arial", Font.BOLD, 22));
+            g2.drawString("+1 croccantino!", 20, 100);
+        }
+
         if (gameWon) {
             g2.setColor(new Color(0, 0, 0, 190));
             g2.fillRect(0, 0, screenWidth, screenHeight);
@@ -185,7 +222,7 @@ public class GamePanel extends JPanel implements Runnable {
             g2.fillRect(0, 0, screenWidth, screenHeight);
             g2.setColor(Color.RED);
             g2.setFont(new Font("Arial", Font.BOLD, 32));
-            g2.drawString("SEI CADUTO SUL PAVIMENTO!", 140, screenHeight / 2 - 20);
+            g2.drawString("SEI CADUTA SUL PAVIMENTO!", 140, screenHeight / 2 - 20);
 
             g2.setColor(Color.WHITE);
             g2.setFont(new Font("Arial", Font.BOLD, 20));
@@ -195,4 +232,3 @@ public class GamePanel extends JPanel implements Runnable {
         g2.dispose();
     }
 }
-
