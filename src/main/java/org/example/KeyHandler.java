@@ -1,17 +1,17 @@
 package org.example;
 
+import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 public class KeyHandler implements KeyListener {
 
     public boolean upPressed, downPressed, leftPressed, rightPressed, spacePressed;
-    public GamePanel gp;
+    private Restartable gp;
 
-    public KeyHandler(GamePanel gp) {
+    public KeyHandler(Restartable gp) {
         this.gp = gp;
     }
-
     @Override
     public void keyTyped(KeyEvent e) {}
 
@@ -27,7 +27,9 @@ public class KeyHandler implements KeyListener {
             spacePressed = true;
 
             // Se la partita è finita (Game Over o Vittoria), premendo SPAZIO il gioco si riavvia
-            if (gp != null && (gp.gameOver || gp.gameWon)) {
+            if (gp != null &&
+                    (gp.isGameOver() || gp.isGameWon())) {
+
                 gp.restartGame();
             }
         }

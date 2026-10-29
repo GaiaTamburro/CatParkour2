@@ -5,7 +5,7 @@ import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.io.IOException;
 import java.util.ArrayList;
-
+import javax.swing.JPanel;
 public class Cat {
 
     public float x, y;
@@ -18,13 +18,13 @@ public class Cat {
     public float gravity = 0.48f;
     public float jumpStrength = -13f;
 
-    private GamePanel gp;
+    private JPanel gp;
     private KeyHandler keyH;
 
     // 🔥 UNICA MODIFICA: immagine del gatto
     private BufferedImage catImage;
 
-    public Cat(GamePanel gp, KeyHandler keyH) {
+    public Cat(JPanel gp, KeyHandler keyH) {
         this.gp = gp;
         this.keyH = keyH;
         //this.width = gp.tileSize;
@@ -118,5 +118,13 @@ public class Cat {
             g2.setColor(Color.ORANGE);
             g2.fillOval(ix, iy, width, height);
         }
+    }
+
+    public BufferedImage getCatImage() {
+        return catImage;
+    }
+
+    public void setCatImage(BufferedImage catImage) {
+        this.catImage = catImage;
     }
 }
